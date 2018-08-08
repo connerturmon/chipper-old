@@ -5,15 +5,15 @@
 
 typedef struct registers
 {
-    /* General purpose registers */
-    uint8_t
-        V1, V2, V3, V4, V5,
-        V6, V7, V8, V9, VA,
-        VB, VC, VD, VE;
+    uint8_t  V[15]; /* 15 General purpose registers V0-VE */
     uint8_t  VF;    /* Flag register */
     uint8_t  SP;    /* Stack pointer points to top of stack */
     uint16_t PC;    /* Program counter keeps track of current instruction */
     uint16_t I;     /* Used to store memory addresses for operations */
+
+    /* Timers */
+    uint8_t  DT;    /* Delay timer counts decrements from non-zero value at 60Hz rate */
+    uint8_t  ST;    /* Sound timer "    " and beeps upon 0 */
 } registers;
 
 #endif /* _INTERPRETER_H */
