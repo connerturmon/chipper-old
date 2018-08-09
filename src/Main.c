@@ -4,11 +4,24 @@
 
 int main(int argc, char* argv[])
 {
-    /* Just testing bitwork */
-    uint16_t num = 0xFA32;
-    uint8_t  val = (num & 0x0F00) >> 8;
+    if (argc < 2)
+    {
+        printf("Please pass a ROM file as CLI argument...\n");
+        exit(900);
+    }
+    FILE *ROM = fopen(argv[1], "r");
+    if (!ROM)
+    {
+        printf("Unable to open file...\n");
+        exit(901);
+    }
+    fseek(ROM, 0, SEEK_END);
+    const unsigned int rom_size = ftell(ROM);
+    fseek(ROM, 0, SEEK_SET);
 
-    printf("%u", val);
+    uint8_t *rom_buffer = malloc(sizeof(uint8_t) * rom_size);
+    fread(rom_buffer, 1, rom_size, ROM);
+    fclose(ROM);
 
     return 0;
 }

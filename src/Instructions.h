@@ -16,6 +16,15 @@
 #include <stdint.h>
 #include "Interpreter.h"
 
+typedef struct RESULTREGISTERS
+{
+    uint8_t x;
+    uint8_t y;
+} RESULTREGISTERS;
+
+const uint16_t GetAddressFromOpcode(const uint16_t opcode) { return opcode & 0x0FFF; }
+const RESULTREGISTERS GetRegistersFromOpcode(const uint16_t opcode);
+
 void _SYS_addr(
     const uint16_t opcode,
     struct registers *regs
@@ -30,47 +39,110 @@ void _JP_addr(
     struct registers *regs
 );
 void _CALL_addr(
-    uint16_t opcode,
+    const uint16_t opcode,
     struct registers *regs,
     uint16_t stack[]
 );
 void _SE_Vx_B(
-    uint16_t opcode,
+    const uint16_t opcode,
     struct registers *regs
 );
 void _SNE_Vx_B(
-    uint16_t opcode,
+    const uint16_t opcode,
     struct registers *regs
 );
-void _SE_Vx_Vy();
-void _LD_Vx_B();
-void _ADD_Vx_B();
-void _LD_Vx_Vy();
-void _OR_Vx_Vy();
-void _AND_Vx_Vy();
-void _XOR_Vx_Vy();
-void _ADD_Vx_Vy();
-void _SUB_Vx_Vy();
-void _SHR_Vx_Vy();
-void _SUBN_Vx_Vy();
-void _SHL_Vx_Vy();
-void _SNE_Vx_Vy();
-void _LD_I_addr();
-void _JP_V0_addr();
+void _SE_Vx_Vy(
+    const uint16_t opcode,
+    struct registers *regs
+);
+void _LD_Vx_B(
+    const uint16_t opcode,
+    struct registers *regs
+);
+void _ADD_Vx_B(
+    const uint16_t opcode,
+    struct registers *regs
+);
+void _LD_Vx_Vy(
+    const uint16_t opcode,
+    struct registers *regs
+);
+void _OR_Vx_Vy(
+    const uint16_t opcode,
+    struct registers *regs
+);
+void _AND_Vx_Vy(
+    const uint16_t opcode,
+    struct registers *regs
+);
+void _XOR_Vx_Vy(
+    const uint16_t opcode,
+    struct registers *regs
+);
+void _ADD_Vx_Vy(
+    const uint16_t opcode,
+    struct registers *regs
+);
+void _SUB_Vx_Vy(
+    const uint16_t opcode,
+    struct registers *regs
+);
+void _SHR_Vx(
+    const uint16_t opcode,
+    struct registers *regs
+);
+void _SUBN_Vx_Vy(
+    const uint16_t opcode,
+    struct registers *regs
+);
+void _SHL_Vx(
+    const uint16_t opcode,
+    struct registers *regs
+);
+void _SNE_Vx_Vy(
+    const uint16_t opcode,
+    struct registers *regs
+);
+void _LD_I_addr(
+    const uint16_t opcode,
+    struct registers *regs
+);
+void _JP_V0_addr(
+    const uint16_t opcode,
+    struct registers *regs
+);
 void _RND_Vx_B();
 void _DRW_Vx_Vy_nibble();
 void _SKP_Vx();
 void _SKNP_Vx();
-void _LD_Vx_DT();
+void _LD_Vx_DT(
+    const uint16_t opcode,
+    struct registers *regs
+);
 void _LD_Vx_K();
-void _LD_DT_Vx();
-void _LD_ST_Vx();
-void _ADD_I_Vx();
+void _LD_DT_Vx(
+    const uint16_t opcode,
+    struct registers *regs
+);
+void _LD_ST_Vx(
+    const uint16_t opcode,
+    struct registers *regs
+);
+void _ADD_I_Vx(
+    const uint16_t opcode,
+    struct registers *regs
+);
 void _LD_F_Vx();
 void _LD_B_Vx();
-void _LD_addrI_Vx();
-void _LD_Vx_addrI();
-
-uint16_t GetAddressFromOpcode(const uint16_t opcode) { return opcode & 0x0FFF; }
+void _LD_addrI_Vx(
+    const uint16_t opcode,
+    struct registers *regs,
+    uint8_t memory[]
+);
+void _LD_Vx_addrI(
+    const uint16_t opcode,
+    struct registers *regs,
+    uint8_t memory[]
+);
 
 #endif /* _INSTRUCTIONS_H */
