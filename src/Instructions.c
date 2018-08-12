@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdio.h>
 #include "Instructions.h"
 #include "Interpreter.h"
 #include "Memory.h"
@@ -13,8 +14,10 @@ const RESULTREGISTERS GetRegistersFromOpcode(const uint16_t opcode)
     return result;
 }
 
+const uint16_t GetAddressFromOpcode(const uint16_t opcode) { return opcode & 0x0FFF; }
+
 /* Jump to a machine code routine at nnn */
-void _SYS_addr(const uint16_t opcode, struct registers *regs)
+void _SYS_addr(const uint16_t opcode, struct Registers *regs)
 {
     const uint16_t address = GetAddressFromOpcode(opcode);
     regs->PC = address;
@@ -27,31 +30,33 @@ void _CLS()
 }
 
 /* Return from subroutine */
-void _RET(struct registers *regs, uint8_t stack[])
+void _RET(struct Registers *regs, uint16_t stack[])
 {
     regs->PC = stack[regs->SP]; /* Set PC to address at top of stack */
     regs->SP--;
 }
 
 /* Set program counter to specified address */
-void _JP_addr(const uint16_t opcode, struct registers* regs)
+void _JP_addr(const uint16_t opcode, struct Registers* regs)
 {
     const uint16_t address = GetAddressFromOpcode(opcode);
     regs->PC = address;
 }
 
 /* Call subroutine at specified address */
-void _CALL_addr(const uint16_t opcode, struct registers *regs, uint16_t stack[])
+void _CALL_addr(const uint16_t opcode, struct Registers *regs, uint16_t stack[])
 {
     const uint16_t address = GetAddressFromOpcode(opcode);
 
-    regs->SP++;
+    printf("Address: %03X\nPC: %X\n", address, regs->PC);
     stack[regs->SP] = regs->PC;
-    regs->PC = address; 
+    regs->SP++;
+    regs->PC = address;
+    printf("PC: %X\n", regs->PC);
 }
 
 /* Skip next instruction if Vx == specified value */
-void _SE_Vx_B(const uint16_t opcode, struct registers *regs)
+void _SE_Vx_B(const uint16_t opcode, struct Registers *regs)
 {
     const uint8_t reg = (opcode & 0x0F00) >> 8;
     const uint8_t val = opcode & 0x00FF;
@@ -61,7 +66,7 @@ void _SE_Vx_B(const uint16_t opcode, struct registers *regs)
 }
 
 /* Skip next instruction if Vx != specified value */
-void _SNE_Vx_B(const uint16_t opcode, struct registers *regs)
+void _SNE_Vx_B(const uint16_t opcode, struct Registers *regs)
 {
     const uint8_t reg = (opcode & 0x0F00) >> 8;
     const uint8_t val = opcode & 0x00FF;
@@ -71,7 +76,7 @@ void _SNE_Vx_B(const uint16_t opcode, struct registers *regs)
 }
 
 /* Skip next instruction if Vx == Vy */
-void _SE_Vx_Vy(const uint16_t opcode, struct registers *regs)
+void _SE_Vx_Vy(const uint16_t opcode, struct Registers *regs)
 {
     const RESULTREGISTERS reg = GetRegistersFromOpcode(opcode);
 
@@ -80,7 +85,7 @@ void _SE_Vx_Vy(const uint16_t opcode, struct registers *regs)
 }
 
 /* Set Vx equal to specified value */
-void _LD_Vx_B(const uint16_t opcode, struct registers *regs)
+void _LD_Vx_B(const uint16_t opcode, struct Registers *regs)
 {
     const uint8_t reg = (opcode & 0x0F00) >> 8;
     const uint8_t val = opcode & 0x00FF;
@@ -89,7 +94,7 @@ void _LD_Vx_B(const uint16_t opcode, struct registers *regs)
 }
 
 /* Adds specified value to Vx */
-void _ADD_Vx_B(const uint16_t opcode, struct registers *regs)
+void _ADD_Vx_B(const uint16_t opcode, struct Registers *regs)
 {
     const uint8_t reg = (opcode & 0x0F00) >> 8;
     const uint8_t val = opcode & 0x00FF;
@@ -98,7 +103,7 @@ void _ADD_Vx_B(const uint16_t opcode, struct registers *regs)
 }
 
 /* Store the value of Vy into Vx */
-void _LD_Vx_Vy(const uint16_t opcode, struct registers *regs)
+void _LD_Vx_Vy(const uint16_t opcode, struct Registers *regs)
 {
     const RESULTREGISTERS reg = GetRegistersFromOpcode(opcode);
 
@@ -106,7 +111,7 @@ void _LD_Vx_Vy(const uint16_t opcode, struct registers *regs)
 }
 
 /* Vx |= Vy */
-void _OR_Vx_Vy(const uint16_t opcode, struct registers *regs)
+void _OR_Vx_Vy(const uint16_t opcode, struct Registers *regs)
 {
     const RESULTREGISTERS reg = GetRegistersFromOpcode(opcode);
     
@@ -114,7 +119,7 @@ void _OR_Vx_Vy(const uint16_t opcode, struct registers *regs)
 }
 
 /* Vx &= Vy */
-void _AND_Vx_Vy(const uint16_t opcode, struct registers *regs)
+void _AND_Vx_Vy(const uint16_t opcode, struct Registers *regs)
 {
     const RESULTREGISTERS reg = GetRegistersFromOpcode(opcode);
 
@@ -122,7 +127,7 @@ void _AND_Vx_Vy(const uint16_t opcode, struct registers *regs)
 }
 
 /* Vx ^= Vy */
-void _XOR_Vx_Vy(const uint16_t opcode, struct registers *regs)
+void _XOR_Vx_Vy(const uint16_t opcode, struct Registers *regs)
 {
     const RESULTREGISTERS reg = GetRegistersFromOpcode(opcode);
 
@@ -130,7 +135,7 @@ void _XOR_Vx_Vy(const uint16_t opcode, struct registers *regs)
 }
 
 /* Vx += Vy, set VF = carry */
-void _ADD_Vx_Vy(const uint16_t opcode, struct registers *regs)
+void _ADD_Vx_Vy(const uint16_t opcode, struct Registers *regs)
 {
     const RESULTREGISTERS reg = GetRegistersFromOpcode(opcode);
     /* Check for overflow (can't do it regularly cause uint8_t wraps) */
@@ -142,7 +147,7 @@ void _ADD_Vx_Vy(const uint16_t opcode, struct registers *regs)
 }
 
 /* Vx -= Vy, set VF = NOT Borrow */
-void _SUB_Vx_Vy(const uint16_t opcode, struct registers *regs)
+void _SUB_Vx_Vy(const uint16_t opcode, struct Registers *regs)
 {
     const RESULTREGISTERS reg = GetRegistersFromOpcode(opcode);
 
@@ -152,7 +157,7 @@ void _SUB_Vx_Vy(const uint16_t opcode, struct registers *regs)
 }
 
 /* Vx >> 1, set VF if least significant bit of Vx is 1 */
-void _SHR_Vx(const uint16_t opcode, struct registers *regs)
+void _SHR_Vx(const uint16_t opcode, struct Registers *regs)
 {
     const uint8_t reg = (opcode & 0x0F00) >> 8;
 
@@ -162,7 +167,7 @@ void _SHR_Vx(const uint16_t opcode, struct registers *regs)
 }
 
 /* Set Vx = Vy - Vx, set VF = NOT Borrow */
-void _SUBN_Vx_Vy(const uint16_t opcode, struct registers *regs)
+void _SUBN_Vx_Vy(const uint16_t opcode, struct Registers *regs)
 {
     const RESULTREGISTERS reg = GetRegistersFromOpcode(opcode);
 
@@ -172,17 +177,17 @@ void _SUBN_Vx_Vy(const uint16_t opcode, struct registers *regs)
 }
 
 /* Vx << 1, set VF if most significant bit of Vx is 1 */
-void _SHL_Vx(const uint16_t opcode, struct registers *regs)
+void _SHL_Vx(const uint16_t opcode, struct Registers *regs)
 {
     const uint8_t reg = (opcode & 0x0F00) >> 8;
 
-    if ((regs->V[reg] & 0x80) == 1)
+    if ((regs->V[reg] & 0x80) >> 7 == 1)
         regs->VF = 1;
     regs->V[reg] <<= 1;
 }
 
 /* Skip next instruction if Vx != Vy */
-void _SNE_Vx_Vy(const uint16_t opcode, struct registers *regs)
+void _SNE_Vx_Vy(const uint16_t opcode, struct Registers *regs)
 {
     RESULTREGISTERS reg = GetRegistersFromOpcode(opcode);
 
@@ -191,61 +196,63 @@ void _SNE_Vx_Vy(const uint16_t opcode, struct registers *regs)
 }
 
 /* Store specified address into register I */
-void _LD_I_addr(const uint16_t opcode, struct registers *regs)
+void _LD_I_addr(const uint16_t opcode, struct Registers *regs)
 {
     const uint16_t address = opcode & 0x0FFF;
     regs->I = address;
 }
 
 /* Jump to location specified + V0 */
-void _JP_V0_addr(const uint16_t opcode, struct registers *regs)
+void _JP_V0_addr(const uint16_t opcode, struct Registers *regs)
 {
     const uint16_t address = (opcode & 0x0FFF) + regs->V[0];
     regs->PC = address;
 }
 
 /* Set Vx = random Byte & specified value */
-void _RND_Vx_B();
+void _RND_Vx_B() { printf("Feelsbadman\n"); }
 
 /* Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision */
-void _DRW_Vx_Vy_nibble();
+void _DRW_Vx_Vy_nibble() { printf("Feelsbadman\n"); }
 
-void _SKP_Vx();
-void _SKNP_Vx();
+void _SKP_Vx() { printf("Feelsbadman\n"); }
+void _SKNP_Vx() { printf("Feelsbadman\n"); }
 
 /* Store value of DT into Vx */
-void _LD_Vx_DT(const uint16_t opcode, struct registers *regs)
+void _LD_Vx_DT(const uint16_t opcode, struct Registers *regs)
 {
     const uint8_t reg = (opcode & 0x0F00) >> 8;
     regs->V[reg] = regs->DT;
 }
 
-void _LD_Vx_K();
+void _LD_Vx_K() { printf("Feelsbadman\n"); }
 
 /* Set DT = Vx */
-void _LD_DT_Vx(const uint16_t opcode, struct registers *regs)
+void _LD_DT_Vx(const uint16_t opcode, struct Registers *regs)
 {
     const uint8_t reg = (opcode & 0x0F00) >> 8;
     regs->DT = regs->V[reg];
 }
 
-void _LD_ST_Vx(const uint16_t opcode, struct registers *regs)
+/* Load Sound Timer into Vx */
+void _LD_ST_Vx(const uint16_t opcode, struct Registers *regs)
 {
     const uint8_t reg = (opcode & 0x0F00) >> 8;
     regs->ST = regs->V[reg];
 }
 
-void _ADD_I_Vx(const uint16_t opcode, struct registers *regs)
+/* I = I + Vx */
+void _ADD_I_Vx(const uint16_t opcode, struct Registers *regs)
 {
     const uint8_t reg = (opcode & 0x0F00) >> 8;
     regs->I += regs->V[reg];
 }
 
-void _LD_F_Vx();
-void _LD_B_Vx();
+void _LD_F_Vx() { printf("Feelsbadman\n"); }
+void _LD_B_Vx() { printf("Feelsbadman\n"); }
 
 /* Store registers V0 through Vx in memory starting at location I */
-void _LD_addrI_Vx(const uint16_t opcode, struct registers *regs, uint8_t memory[])
+void _LD_addrI_Vx(const uint16_t opcode, struct Registers *regs, uint8_t memory[])
 {
     const uint8_t reg = (opcode & 0x0F00) >> 8;
     for (int i = 0; i <= reg; i++)
@@ -253,7 +260,7 @@ void _LD_addrI_Vx(const uint16_t opcode, struct registers *regs, uint8_t memory[
 }
 
 /* Read registers V0 through Vx from memory starting at location I */
-void _LD_Vx_addrI(const uint16_t opcode, struct registers *regs, uint8_t memory[])
+void _LD_Vx_addrI(const uint16_t opcode, struct Registers *regs, uint8_t memory[])
 {
     const uint8_t reg = (opcode & 0x0F00) >> 8;
     for (int i = 0; i <= reg; i++)

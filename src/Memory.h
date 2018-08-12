@@ -3,15 +3,23 @@
 
 #include <stdint.h>
 
+typedef struct Memory
+{
+    uint8_t  main[4096];
+    uint16_t stack[16];
+} Memory;
+
 uint8_t ReadByte(
     uint8_t memory[],
     const uint16_t address
-) { return memory[address]; }
+);
 
 void WriteByte(
     uint8_t memory[], 
     const uint16_t address, 
     const uint8_t value
-) { memory[address] = value; }
+);
+
+void InitializeMemory(uint8_t memory[], uint16_t stack[]);
 
 #endif /* _MEMORY_H */
