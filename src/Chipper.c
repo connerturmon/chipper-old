@@ -27,6 +27,8 @@ uint8_t chip8_fontset[FONTSET_SIZE] =
     0xF0, 0x80, 0xF0, 0x80, 0x80  // F
 };
 
+// This is the main the Chipper function that initializes a bunch of the
+// required subsystems like SDL and the Interpreter.
 void ChipperStart(const char *rom)
 {
     // Start by initializing our interpreter for use.
@@ -37,19 +39,25 @@ void ChipperStart(const char *rom)
     uint8_t keys;
     SDL_Event event;
     SDL_Init(SDL_INIT_EVERYTHING);
-    SDL_SetVideoMode(DISPLAY_W, DISPLAY_H, DISPLAY_BPP, SDL_HWSURFACE | SDL_DOUBLEBUF);
-    ChipperPrintROM(&chipper);
+    SDL_SetVideoMode(
+        DISPLAY_W, DISPLAY_H, 
+        DISPLAY_BPP,
+        SDL_HWSURFACE | SDL_DOUBLEBUF
+    );
+
     // Enter main loop of the program.
     for (;;)
     {
         if (SDL_PollEvent(&event))
-            if (event.key.state == SDL_PRESSED && event.key.keysym.sym == SDLK_ESCAPE)
+            if (event.key.state == SDL_PRESSED
+                && event.key.keysym.sym == SDLK_ESCAPE)
                 exit(1);
         
-        // ChipperExecute(&chipper);
-        ChipperDraw(&chipper);
+        ChipperExecute(&chipper);
     }
 }
+
+//------------------ SYSTEM FUNCTIONS ------------------//
 
 void ChipperInitialize(const char *rom, Chip8 *chipper)
 {
@@ -113,4 +121,91 @@ void ChipperPrintROM(Chip8 *chipper)
 {
     for (int i = 0; i < WORKRAM_OFFSET; i++)
         printf("%02X ", chipper->memory[WORKRAM_OFFSET + i]);
+}
+
+void ChipperExecute(Chip8 *chipper)
+{
+    for (int cycles = 0; cycles <= 10; cycles++)
+    {
+        chipper->opcode = chipper->memory[chipper->registers.PC] << 8 |
+            chipper->memory[chipper->registers.PC + 1];
+        switch ((chipper->opcode & 0xF000) >> 12)
+        {
+        // Because there are mutiple operations with the '0x0' prefix, there
+        // has to be another switch case to handle the sub-operations.
+        case 0x0:
+            switch (chipper->opcode & 0x00FF)
+            {
+            case 0xE0:
+                // 0x00E0 : CLS
+                break;
+            case 0xEE:
+                // 0x00EE : RET
+                chipper->registers.PC = chipper->stack[chipper->registers.SP];
+                chipper->registers.SP--;
+                break;
+            }
+        
+        case 0x1:
+            // 1nnn : JMP addr
+            chipper->registers.PC = (chipper->opcode & 0x0FFF);
+            break;
+        case 0x2:
+            // 2nnn : CALL addr
+            chipper->registers.SP++;
+            chipper->stack[chipper->registers.SP] = chipper->registers.PC;
+            chipper->registers.PC = (chipper->opcode & 0x0FFF);
+            break;
+        case 0x3:
+            // 0x3xkk : SE Vx, byte
+            if (chipper->registers.V[ (chipper->opcode & 0x0F00) >> 8 ] == chipper->opcode & 0x00FF)
+                chipper->registers.PC += 2;
+            chipper->registers.PC += 2;
+            break;
+        case 0x4:
+            // 0x4xkk : SNE Vx, byte
+            if (chipper->registers.V[ (chipper->opcode & 0x0F00) >> 8 ] != chipper->opcode & 0x00FF)
+                chipper->registers.PC += 2;
+            chipper->registers.PC += 2;
+            break;
+        case 0x5:
+            // 0x5xy0 : SE Vx, Vy
+            if (chipper->registers.V[ (chipper->opcode & 0x0F00) >> 8 ] == chipper->registers.V[ (chipper->opcode & 0x00F0) >> 4 ])
+                chipper->registers.PC += 2;
+            chipper->registers.PC += 2;
+            break;
+        case 0x6:
+            // 0x6xkk : LD Vx, byte
+            chipper->registers.V[ (chipper->opcode & 0x0F00) >> 8] = chipper->opcode & 0x00FF;
+            chipper->registers.PC += 2;
+            break;
+        case 0x7:
+            // ADD Vx, byte
+            chipper->registers.V[ (chipper->opcode & 0x0F00) >> 8] += chipper->opcode & 0x00FF;
+            chipper->registers.PC += 2;
+            break;
+        case 0x8:
+            switch (chipper->opcode & 0x000F)
+            {
+            case 0x0:
+                // LD Vx, Vy
+                chipper->registers.V[ (chipper->opcode & 0x0F00) >> 8] =
+                    chipper->registers.V[ (chipper->opcode & 0x00F0) >> 4];
+                chipper->registers.PC += 2;
+                break;
+            case 0x1:
+                // OR Vx, Vy
+                chipper->registers.V[ (chipper->opcode & 0x0F00) >> 8] |=
+                    chipper->registers.V[ (chipper->opcode & 0x00F0) >> 4];
+                chipper->registers.PC += 2;
+                break;
+            case 0x2:
+                // AND Vx, Vy
+                chipper->registers.V[ (chipper->opcode & 0x0F00) >> 8] &=
+                    chipper->registers.V[ (chipper->opcode & 0x00F0) >> 4];
+                chipper->registers.PC += 2;
+                break;
+            }
+        }
+    }
 }
