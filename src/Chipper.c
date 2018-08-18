@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 #include <SDL/SDL.h>
 
@@ -25,6 +26,25 @@ uint8_t chip8_fontset[FONTSET_SIZE] =
     0xE0, 0x90, 0x90, 0x90, 0xE0, // D
     0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
     0xF0, 0x80, 0xF0, 0x80, 0x80  // F
+};
+
+static int keymap[0x10] = {
+    SDLK_0,
+    SDLK_1,
+    SDLK_2,
+    SDLK_3,
+    SDLK_4,
+    SDLK_5,
+    SDLK_6,
+    SDLK_7,
+    SDLK_8,
+    SDLK_9,
+    SDLK_a,
+    SDLK_b,
+    SDLK_c,
+    SDLK_d,
+    SDLK_e,
+    SDLK_f
 };
 
 // This is the main the Chipper function that initializes a bunch of the
@@ -54,6 +74,7 @@ void ChipperStart(const char *rom)
                 exit(1);
         
         ChipperExecute(&chipper);
+        ChipperDraw(&chipper);
     }
 }
 
@@ -125,10 +146,20 @@ void ChipperPrintROM(Chip8 *chipper)
 
 void ChipperExecute(Chip8 *chipper)
 {
+    // Used for testing for overflows
+    uint16_t result;
+
+    uint8_t  *keys;
+    int      y, x, vx, vy, times, i;
+    unsigned height, pixel;
+
+    // Begin main execution loop
     for (int cycles = 0; cycles <= 10; cycles++)
     {
         chipper->opcode = chipper->memory[chipper->registers.PC] << 8 |
             chipper->memory[chipper->registers.PC + 1];
+        printf("OPCODE: %04X | PC: %02X | I: %04X | SP: %04X\n",
+            chipper->opcode, chipper->registers.PC, chipper->registers.I, chipper->registers.SP);
         switch ((chipper->opcode & 0xF000) >> 12)
         {
         // Because there are mutiple operations with the '0x0' prefix, there
@@ -144,7 +175,11 @@ void ChipperExecute(Chip8 *chipper)
                 chipper->registers.PC = chipper->stack[chipper->registers.SP];
                 chipper->registers.SP--;
                 break;
+            default:
+                printf("UNEXPECTED OP\n");
+                break;
             }
+        break;
         
         case 0x1:
             // 1nnn : JMP addr
@@ -158,13 +193,13 @@ void ChipperExecute(Chip8 *chipper)
             break;
         case 0x3:
             // 0x3xkk : SE Vx, byte
-            if (chipper->registers.V[ (chipper->opcode & 0x0F00) >> 8 ] == chipper->opcode & 0x00FF)
+            if (chipper->registers.V[ (chipper->opcode & 0x0F00) >> 8 ] == (chipper->opcode & 0x00FF))
                 chipper->registers.PC += 2;
             chipper->registers.PC += 2;
             break;
         case 0x4:
             // 0x4xkk : SNE Vx, byte
-            if (chipper->registers.V[ (chipper->opcode & 0x0F00) >> 8 ] != chipper->opcode & 0x00FF)
+            if (chipper->registers.V[ (chipper->opcode & 0x0F00) >> 8 ] != (chipper->opcode & 0x00FF))
                 chipper->registers.PC += 2;
             chipper->registers.PC += 2;
             break;
@@ -184,6 +219,7 @@ void ChipperExecute(Chip8 *chipper)
             chipper->registers.V[ (chipper->opcode & 0x0F00) >> 8] += chipper->opcode & 0x00FF;
             chipper->registers.PC += 2;
             break;
+        
         case 0x8:
             switch (chipper->opcode & 0x000F)
             {
@@ -205,7 +241,199 @@ void ChipperExecute(Chip8 *chipper)
                     chipper->registers.V[ (chipper->opcode & 0x00F0) >> 4];
                 chipper->registers.PC += 2;
                 break;
+            case 0x3:
+                // XOR Vx, Vy
+                chipper->registers.V[ (chipper->opcode & 0x0F00) >> 8] ^=
+                    chipper->registers.V[ (chipper->opcode & 0x00F0) >> 4];
+                chipper->registers.PC += 2;
+                break;
+            case 0x4:
+                // ADD Vx, Vy
+                result = (chipper->registers.V[ (chipper->opcode & 0x0F00) >> 8]) +
+                    (chipper->registers.V[ (chipper->opcode & 0x00F0) >> 4]);
+                if (result > 0xFF)
+                    chipper->registers.V[0xF] = 1;
+
+                chipper->registers.V[ (chipper->opcode & 0x0F00) >> 8] +=
+                    chipper->registers.V[ (chipper->opcode & 0x00F0) >> 4];
+                chipper->registers.PC += 2;
+                break;
+            case 0x5:
+                // SUB Vx, Vy
+                if (chipper->registers.V[ (chipper->opcode & 0x0F00) >> 8] >
+                    chipper->registers.V[ (chipper->opcode & 0x00F0) >> 4])
+                    chipper->registers.V[0xF] = 1;
+                else
+                    chipper->registers.V[0xF] = 0;
+
+                chipper->registers.V[ (chipper->opcode & 0x0F00) >> 8 ] -=
+                    chipper->registers.V[ (chipper->opcode & 0x00F0) >> 4];
+                chipper->registers.PC += 2;
+                break;
+            case 0x6:
+                // SHR Vx
+                if ( (chipper->registers.V[ (chipper->opcode & 0x0F00) >> 8] & 0x1) == 1)
+                    chipper->registers.V[0xF] = 1;
+                else
+                    chipper->registers.V[0xF] = 0;
+                chipper->registers.V[ (chipper->opcode & 0x0F00) >> 8] =
+                    chipper->registers.V[ (chipper->opcode & 0x0F00) >> 8] >> 1;
+                chipper->registers.PC += 2;
+                break;
+            case 0x7:
+                // SUBN Vx, Vy
+                if (chipper->registers.V[ (chipper->opcode & 0x0F00) >> 8] <
+                    chipper->registers.V[ (chipper->opcode & 0x00F0) >> 4])
+                    chipper->registers.V[0xF] = 1;
+                else
+                    chipper->registers.V[0xF] = 0;
+
+                chipper->registers.V[ (chipper->opcode & 0x0F00) >> 8 ] =
+                    chipper->registers.V[ (chipper->opcode & 0x00F0) >> 4] - chipper->registers.V[ (chipper->opcode & 0x0F00) >> 8];
+                chipper->registers.PC += 2;
+                break;
+            case 0xE:
+                if ( (chipper->registers.V[ (chipper->opcode & 0x0F00) >> 8] & 0x80) == 1)
+                    chipper->registers.V[0xF] = 1;
+                else
+                    chipper->registers.V[0xF] = 0;
+                chipper->registers.V[ (chipper->opcode & 0x0F00) >> 8] =
+                    chipper->registers.V[ (chipper->opcode & 0x0F00) >> 8] << 1;
+                chipper->registers.PC += 2;
+                break;
+            default:
+                printf("UNEXPECTED OP\n");
+                break;
             }
+        break;
+
+        case 0x9:
+            // SNE Vx, Vy
+            if (chipper->registers.V[ (chipper->opcode & 0x0F00) >> 8] !=
+                chipper->registers.V[ (chipper->opcode & 0x00F0) >> 4])
+                chipper->registers.PC += 2;
+            chipper->registers.PC += 2;
+            break;
+        case 0xA:
+            // Set I = nnn
+            chipper->registers.I = (chipper->opcode & 0x0FFF);
+            chipper->registers.PC += 2;
+            break;
+        case 0xB:
+            // JP V0, addr
+            chipper->registers.PC = (chipper->opcode & 0x0FFF) + chipper->registers.V[0];
+            break;
+        case 0xC:
+            // RND Vx, byte
+            chipper->registers.V[ (chipper->opcode & 0x0F00) >> 8] = rand() & (chipper->opcode & 0x00FF);
+            chipper->registers.PC += 2;
+            break;
+        case 0xD:
+            // DRW Vx, Vy, nibble
+            // Get x and y coordinates to draw from Vx and Vy
+            vx = chipper->registers.V[(chipper->opcode & 0x0F00) >> 8];
+            vy = chipper->registers.V[(chipper->opcode & 0x00F0) >> 4];
+            // The number of bytes to read in from memory starting at location I
+            height = chipper->opcode & 0x000F;
+            chipper->registers.V[0xF] &= 0;
+            
+            for(y = 0; y < height; y++){
+                pixel = chipper->memory[chipper->registers.I + y];
+                for(x = 0; x < 8; x++){
+                    if(pixel & (0x80 >> x)){
+                        if(chipper->graphics[x + vx + (y + vy) * 64])
+                            chipper->registers.V[0xF] = 1;
+                        chipper->graphics[ x + vx + (y + vy) * 64] ^= 1;
+                    }
+                }
+            }
+            chipper->registers.PC += 2;
+            break;
+        
+        case 0xE:
+            switch(chipper->opcode & 0x000F)
+            {
+                case 0x000E: // EX9E: Skips the next instruction if the key stored in VX is pressed
+                    keys = SDL_GetKeyState(NULL);
+                    if(keys[keymap[chipper->registers.V[(chipper->opcode & 0x0F00) >> 8]]])
+                        chipper->registers.PC += 4;
+                    else
+                        chipper->registers.PC += 2;
+                break;
+                             
+                case 0x0001: // EXA1: Skips the next instruction if the key stored in VX isn't pressed
+                    keys = SDL_GetKeyState(NULL);
+                    if(!keys[keymap[chipper->registers.V[(chipper->opcode & 0x0F00) >> 8]]])
+                        chipper->registers.PC += 4;
+                    else
+                        chipper->registers.PC += 2;
+                break;
+                
+                default: printf("Wrong opcode: %X\n", chipper->opcode); getchar(); break;     
+            }
+        break;
+       
+        case 0xF:
+            switch(chipper->opcode & 0x00FF)
+                {
+                    case 0x0007: // FX07: Sets VX to the value of the delay timer
+                        chipper->registers.V[(chipper->opcode & 0x0F00) >> 8] = chipper->registers.DT;
+                        chipper->registers.PC += 2;
+                    break;
+       
+                    case 0x000A: // FX0A: A key press is awaited, and then stored in VX
+                        keys = SDL_GetKeyState(NULL);
+                        for(i = 0; i < 0x10; i++)
+                            if(keys[keymap[i]]){
+                                chipper->registers.V[(chipper->opcode & 0x0F00) >> 8] = i;
+                                chipper->registers.PC += 2;
+                            }
+                    break;
+       
+                    case 0x0015: // FX15: Sets the delay timer to VX
+                        chipper->registers.DT = chipper->registers.V[(chipper->opcode & 0x0F00) >> 8];
+                        chipper->registers.PC += 2;
+                    break;
+       
+                    case 0x0018: // FX18: Sets the sound timer to VX
+                        chipper->registers.ST = chipper->registers.V[(chipper->opcode & 0x0F00) >> 8];
+                        chipper->registers.PC += 2;
+                    break;
+       
+                    case 0x001E: // FX1E: Adds VX to I
+                        chipper->registers.I += chipper->registers.V[(chipper->opcode & 0x0F00) >> 8];
+                        chipper->registers.PC += 2;
+                    break;
+
+                    case 0x0029: // FX29: Sets I to the location of the sprite for the character in VX. Characters 0-F (in hexadecimal) are represented by a 4x5 font
+                        chipper->registers.I = chipper->registers.V[(chipper->opcode & 0x0F00) >> 8] * 5;
+                        chipper->registers.PC += 2;
+                    break;
+       
+                    case 0x0033: // FX33: Stores the Binary-coded decimal representation of VX, with the most significant of three digits at the address in I, the middle digit at I plus 1, and the least significant digit at I plus 2
+                        chipper->memory[chipper->registers.I] = chipper->registers.V[(chipper->opcode & 0x0F00) >> 8] / 100;
+                        chipper->memory[chipper->registers.I+1] = (chipper->registers.V[(chipper->opcode & 0x0F00) >> 8] / 10) % 10;
+                        chipper->memory[chipper->registers.I+2] = chipper->registers.V[(chipper->opcode & 0x0F00) >> 8] % 10;
+                        chipper->registers.PC += 2;
+                    break;
+       
+                    case 0x0055: // FX55: Stores V0 to VX in memory starting at address I
+                        for(i = 0; i <= ((chipper->opcode & 0x0F00) >> 8); i++)
+                            chipper->memory[chipper->registers.I+i] = chipper->registers.V[i];
+                        chipper->registers.PC += 2;
+                    break;
+       
+                    case 0x0065: //FX65: Fills V0 to VX with values from memory starting at address I
+                        for(i = 0; i <= ((chipper->opcode & 0x0F00) >> 8); i++)
+                            chipper->registers.V[i] = chipper->memory[chipper->registers.I + i];
+                        chipper->registers.PC += 2;
+                    break;
+                         
+                    default: printf("Wrong opcode: %X\n", chipper->opcode); getchar(); break;
+                }
+        break;
+
+        default: break;
         }
     }
 }
