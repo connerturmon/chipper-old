@@ -1,2 +1,2 @@
 test:
-	clang src/Chipper.c src/Main.c src/Chipper.h -lSDL
+	clang -lSDL2 src/Main.c
