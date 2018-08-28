@@ -188,7 +188,10 @@ void LoadROM(CHIP8 *chipper, const char *file)
 void Execute(CHIP8 *chipper)
 {
     Uint32 overflow_check;
-    Uint8  x, y, h, pixel;
+    Uint8  x, y, h, sprite_byte;
+    Uint8  key;
+    bool   halt = TRUE;
+    const Uint8 *keystate = SDL_GetKeyboardState(NULL);
 
     for (int i = 0; i < 12; i++)
     {
@@ -360,14 +363,317 @@ void Execute(CHIP8 *chipper)
         break;
 
         case 0xD000:
+            x = ((chipper->opcode & 0x0F00) >> 8);
+            y = ((chipper->opcode & 0x00F0) >> 4);
+            h = (chipper->opcode & 0x000F);
+
+            for (int i = 0; i < h; i++)
+            {
+                sprite_byte = chipper->memory[chipper->I + i];
+                for (int j = 0; j < 8; j++)
+                    if (sprite_byte & (0b10000000 >> j))
+                        chipper->graphics[ (x + j) + ( GRAPHICS_W * (y + i) )] ^= 0xFFFFFFFF;
+            }
 
             chipper->PC += 2;
+        break;
+
+        case 0xE000:
+        
+            switch (chipper->opcode & 0x00FF)
+            {
+            case 0x009E:
+                key = ((chipper->opcode & 0x0F00) >> 8);
+                switch (key)
+                {
+                case 0x0:
+                    if (keystate[SDL_SCANCODE_0])
+                        chipper->PC += 2;
+                break;
+                
+                case 0x1:
+                    if (keystate[SDL_SCANCODE_1])
+                        chipper->PC += 2;
+                break;
+
+                case 0x2:
+                    if (keystate[SDL_SCANCODE_2])
+                        chipper->PC += 2;
+                break;
+
+                case 0x3:
+                    if (keystate[SDL_SCANCODE_3])
+                        chipper->PC += 2;
+                break;
+
+                case 0x4:
+                    if (keystate[SDL_SCANCODE_4])
+                        chipper->PC += 2;
+                break;
+
+                case 0x5:
+                    if (keystate[SDL_SCANCODE_5])
+                        chipper->PC += 2;
+                break;
+
+                case 0x6:
+                    if (keystate[SDL_SCANCODE_6])
+                        chipper->PC += 2;
+                break;
+
+                case 0x7:
+                    if (keystate[SDL_SCANCODE_7])
+                        chipper->PC += 2;
+                break;
+
+                case 0x8:
+                    if (keystate[SDL_SCANCODE_8])
+                        chipper->PC += 2;
+                break;
+
+                case 0x9:
+                    if (keystate[SDL_SCANCODE_9])
+                        chipper->PC += 2;
+                break;
+
+                case 0xA:
+                    if (keystate[SDL_SCANCODE_A])
+                        chipper->PC += 2;
+                break;
+
+                case 0xB:
+                    if (keystate[SDL_SCANCODE_B])
+                        chipper->PC += 2;
+                break;
+
+                case 0xC:
+                    if (keystate[SDL_SCANCODE_C])
+                        chipper->PC += 2;
+                break;
+
+                case 0xD:
+                    if (keystate[SDL_SCANCODE_D])
+                        chipper->PC += 2;
+                break;
+
+                case 0xE:
+                    if (keystate[SDL_SCANCODE_E])
+                        chipper->PC += 2;
+                break;
+
+                case 0xF:
+                    if (keystate[SDL_SCANCODE_F])
+                        chipper->PC += 2;
+                break;
+
+                default:
+                    printf("Error in op %04X : Unknown key pressed.\n", chipper->opcode);
+                break;
+                }
+                chipper->PC += 2;
+            break;
+
+            case 0x00A1:
+                key = ((chipper->opcode & 0x0F00) >> 8);
+                switch (key)
+                {
+                case 0x0:
+                    if (!keystate[SDL_SCANCODE_0])
+                        chipper->PC += 2;
+                break;
+                
+                case 0x1:
+                    if (!keystate[SDL_SCANCODE_1])
+                        chipper->PC += 2;
+                break;
+
+                case 0x2:
+                    if (!keystate[SDL_SCANCODE_2])
+                        chipper->PC += 2;
+                break;
+
+                case 0x3:
+                    if (!keystate[SDL_SCANCODE_3])
+                        chipper->PC += 2;
+                break;
+
+                case 0x4:
+                    if (!keystate[SDL_SCANCODE_4])
+                        chipper->PC += 2;
+                break;
+
+                case 0x5:
+                    if (!keystate[SDL_SCANCODE_5])
+                        chipper->PC += 2;
+                break;
+
+                case 0x6:
+                    if (!keystate[SDL_SCANCODE_6])
+                        chipper->PC += 2;
+                break;
+
+                case 0x7:
+                    if (!keystate[SDL_SCANCODE_7])
+                        chipper->PC += 2;
+                break;
+
+                case 0x8:
+                    if (!keystate[SDL_SCANCODE_8])
+                        chipper->PC += 2;
+                break;
+
+                case 0x9:
+                    if (!keystate[SDL_SCANCODE_9])
+                        chipper->PC += 2;
+                break;
+
+                case 0xA:
+                    if (!keystate[SDL_SCANCODE_A])
+                        chipper->PC += 2;
+                break;
+
+                case 0xB:
+                    if (!keystate[SDL_SCANCODE_B])
+                        chipper->PC += 2;
+                break;
+
+                case 0xC:
+                    if (!keystate[SDL_SCANCODE_C])
+                        chipper->PC += 2;
+                break;
+
+                case 0xD:
+                    if (!keystate[SDL_SCANCODE_D])
+                        chipper->PC += 2;
+                break;
+
+                case 0xE:
+                    if (!keystate[SDL_SCANCODE_E])
+                        chipper->PC += 2;
+                break;
+
+                case 0xF:
+                    if (!keystate[SDL_SCANCODE_F])
+                        chipper->PC += 2;
+                break;
+
+                default:
+                    printf("Error in op %04X : Unknown key pressed.\n", chipper->opcode);
+                break;
+                }
+                chipper->PC += 2;
+            break;
+
+            default:
+                printf("Unexpected operation in 0xE set: %04X", chipper->opcode);
+            break;
+            }
+        
+        break;
+
+        case 0xF000:
+
+            switch (chipper->opcode & 0x00FF)
+            {
+            case 0x0007:
+                chipper->V[ (chipper->opcode & 0x0F00) >> 8 ] = chipper->DT;
+                chipper->PC += 2;
+            break;
+
+            /* Be warned this is definitely the ugliest hackiest code I've ever written
+               in my life. */
+            case 0x000A:
+                while (halt)
+                {
+                    const Uint8 *keystate = SDL_GetKeyboardState(NULL);
+                    /* Very hacky fix. Not proud of this one lol. */
+                    if (keystate[SDL_SCANCODE_0] || keystate[SDL_SCANCODE_1] || keystate[SDL_SCANCODE_2] ||
+                        keystate[SDL_SCANCODE_3] || keystate[SDL_SCANCODE_4] || keystate[SDL_SCANCODE_5] ||
+                        keystate[SDL_SCANCODE_6] || keystate[SDL_SCANCODE_7] || keystate[SDL_SCANCODE_8] ||
+                        keystate[SDL_SCANCODE_9] || keystate[SDL_SCANCODE_A] || keystate[SDL_SCANCODE_B] ||
+                        keystate[SDL_SCANCODE_C] || keystate[SDL_SCANCODE_D] || keystate[SDL_SCANCODE_F] )
+                    {
+                        if      (keystate[SDL_SCANCODE_0]) key = 0x0;
+                        else if (keystate[SDL_SCANCODE_1]) key = 0x1;
+                        else if (keystate[SDL_SCANCODE_2]) key = 0x2;
+                        else if (keystate[SDL_SCANCODE_2]) key = 0x3;
+                        else if (keystate[SDL_SCANCODE_2]) key = 0x4;
+                        else if (keystate[SDL_SCANCODE_2]) key = 0x5;
+                        else if (keystate[SDL_SCANCODE_2]) key = 0x6;
+                        else if (keystate[SDL_SCANCODE_2]) key = 0x7;
+                        else if (keystate[SDL_SCANCODE_2]) key = 0x8;
+                        else if (keystate[SDL_SCANCODE_2]) key = 0x9;
+                        else if (keystate[SDL_SCANCODE_2]) key = 0xA;
+                        else if (keystate[SDL_SCANCODE_2]) key = 0xB;
+                        else if (keystate[SDL_SCANCODE_2]) key = 0xC;
+                        else if (keystate[SDL_SCANCODE_2]) key = 0xD;
+                        else if (keystate[SDL_SCANCODE_2]) key = 0xE;
+                        else if (keystate[SDL_SCANCODE_2]) key = 0xF;
+
+                        chipper->V[ (chipper->opcode & 0x0F00) >> 8 ] = key;
+                        halt = FALSE;
+                    }
+                }
+                chipper->PC += 2;
+            break;
+
+            case 0x0015:
+                chipper->DT = chipper->V[ (chipper->opcode & 0x0F00) >> 8 ];
+                chipper->PC += 2;
+            break;
+
+            case 0x0018:
+                chipper->ST = chipper->V[ (chipper->opcode & 0x0F00) >> 8 ];
+                chipper->PC += 2;
+            break;
+
+            case 0x001E:
+                chipper->I += chipper->V[ (chipper->opcode & 0x0F00) >> 8 ];
+                chipper->PC += 2;
+            break;
+
+            case 0x0029:
+                chipper->I = (chipper->V[ (chipper->opcode & 0x0F00) >> 8 ] * 5);
+                chipper->PC += 2;
+            break;
+
+            case 0x0033:
+                x = ((chipper->opcode & 0x0F00) >> 8);
+                chipper->memory[chipper->I]     = x / 100;
+                chipper->memory[chipper->I + 1] = (x / 10) % 10;
+                chipper->memory[chipper->I + 2] = x % 10;
+                chipper->PC += 2;
+            break;
+
+            case 0x0055:
+                x = ((chipper->opcode & 0x0F00) >> 8);
+                for (int i = 0; i <= x; i++)
+                    chipper->memory[chipper->I + i] = chipper->V[i];
+                chipper->PC += 2;
+            break;
+
+            case 0x0065:
+                x = ((chipper->opcode & 0x0F00) >> 8);
+                for (int i = 0; i <= x; i++)
+                    chipper->V[i] = chipper->memory[chipper->I + i];
+                chipper->PC += 2;
+            break;
+
+            default:
+                printf("Unexpected operation in 0xF set: %04X", chipper->opcode);
+            break;
+            }
+
         break;
 
         default:
             printf("Unkown opcode %04X\n", chipper->opcode);
         break;
         }
+        if (chipper->DT > 0)
+            chipper->DT--;
+        if (chipper->ST > 0)
+            chipper->ST--;
     }
 }
 
