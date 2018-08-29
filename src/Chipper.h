@@ -40,6 +40,7 @@ typedef struct CHIP8
 void ChipperStart(const char *rom_file);
 void ChipperInitialize(CHIP8 *chipper, const char *rom_file);
 void ChipperDraw(CHIP8 *chipper, SDL_Renderer *renderer);
+void ChipperTimers(CHIP8 *chipper);
 void ChipperExecute(CHIP8 *chipper);
 
 #endif /* _CHIPPER_H */

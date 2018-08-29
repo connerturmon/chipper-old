@@ -24,24 +24,26 @@ const Uint8 fontset[80] =
     0xF0, 0x80, 0xF0, 0x80, 0x80  /* F */
 };
 
+/* Because the CHIP-8 keys are stored in memory as
+   0x0 - 0xF (16 keys), we map our keyboard to 0-16. */
 static Uint8 keymap[0x10] =
 {
-    SDL_SCANCODE_0,
+    SDL_SCANCODE_X,
     SDL_SCANCODE_1,
     SDL_SCANCODE_2,
     SDL_SCANCODE_3,
-    SDL_SCANCODE_4,
-    SDL_SCANCODE_5,
-    SDL_SCANCODE_6,
-    SDL_SCANCODE_7,
-    SDL_SCANCODE_8,
-    SDL_SCANCODE_9,
-    SDL_SCANCODE_A,
-    SDL_SCANCODE_B,
-    SDL_SCANCODE_C,
-    SDL_SCANCODE_D,
+    SDL_SCANCODE_Q,
+    SDL_SCANCODE_W,
     SDL_SCANCODE_E,
-    SDL_SCANCODE_F
+    SDL_SCANCODE_A,
+    SDL_SCANCODE_S,
+    SDL_SCANCODE_D,
+    SDL_SCANCODE_Z,
+    SDL_SCANCODE_C,
+    SDL_SCANCODE_4,
+    SDL_SCANCODE_R,
+    SDL_SCANCODE_F,
+    SDL_SCANCODE_V
 };
 
 void ChipperStart(const char *rom_file)
@@ -105,21 +107,6 @@ void ChipperStart(const char *rom_file)
     }
 }
 
-/* Decrement our timers by a rate 60Hz. */
-void ChipperTimers(CHIP8 *chipper)
-{
-    /* If our delay timer or sound timer is not 0, then decrement
-       it by a rate of 60Hz. */
-    if (chipper->DT > 0)
-        chipper->DT--;
-    if (chipper->ST > 0)
-        chipper->ST--;
-    /* If your sound timer is not 0, play a bell sound through the
-       speaker. */
-    if (chipper->ST != 0)
-        printf("%c", 7);
-}
-
 /* Initialize our CHIP-8 system. */
 void ChipperInitialize(CHIP8 *chipper, const char *rom_file)
 {
@@ -168,7 +155,22 @@ void ChipperDraw(CHIP8 *chipper, SDL_Renderer *renderer)
     SDL_RenderPresent(renderer);
 
     /* Don't know why we do this yet. */
-    SDL_Delay(15);
+    // SDL_Delay(15);
+}
+
+/* Decrement our timers by a rate 60Hz. */
+void ChipperTimers(CHIP8 *chipper)
+{
+    /* If our delay timer or sound timer is not 0, then decrement
+       it by a rate of 60Hz. */
+    if (chipper->DT > 0)
+        chipper->DT--;
+    if (chipper->ST > 0)
+        chipper->ST--;
+    /* If your sound timer is not 0, play a bell sound through the
+       speaker. */
+    if (chipper->ST != 0)
+        printf("%c", 7);
 }
 
 /* Here's the heart of our CHIP-8 emulator. This bad boy emulates the fetch,
@@ -176,7 +178,7 @@ void ChipperDraw(CHIP8 *chipper, SDL_Renderer *renderer)
 void ChipperExecute(CHIP8 *chipper)
 {
     Uint8 *keystate;
-    Uint8 x, y;
+    Uint8 x, y, h, sprite_row;
 
     for (int cycles = 0; cycles < 10; cycles++)
     {
@@ -243,7 +245,7 @@ void ChipperExecute(CHIP8 *chipper)
         break;
 
         case 0x8000:
-            switch (chipper->opcode & 0x00FF)
+            switch (chipper->opcode & 0x000F)
             {
             case 0x0000:
                 chipper->V[(chipper->opcode & 0x0F00) >> 8] = chipper->V[(chipper->opcode & 0x00F0) >> 4];
@@ -295,9 +297,168 @@ void ChipperExecute(CHIP8 *chipper)
             break;
 
             case 0x0007:
-                // Start implementing this instruction.
+                if (((int)chipper->V[(chipper->opcode & 0x0F00) >> 8] - (int)chipper->V[(chipper->opcode & 0x00F0) >> 4]) >= 0)
+                    chipper->V[0xF] = 1;
+                else
+                    chipper->V[0xF] &= 0;
+                
+                chipper->V[(chipper->opcode & 0x0F00) >> 8] = chipper->V[(chipper->opcode & 0x0F00) >> 8] - chipper->V[(chipper->opcode & 0x00F0) >> 4];
+                chipper->PC += 2;
+            break;
+
+            case 0x000E:
+                chipper->V[0xF] = chipper->V[(chipper->opcode & 0x0F00) >> 8] >> 7;
+                chipper->V[(chipper->opcode & 0x0F00) >> 8] = chipper->V[(chipper->opcode & 0x0F00) >> 8] << 1;
+                chipper->PC += 2;
+            break;
+
+            default:
+                printf("Wrong opcode: %04X\n", chipper->opcode);
             break;
             }
+        break;
+
+        case 0x9000:
+            if (chipper->V[(chipper->opcode & 0x0F00) >> 8] != chipper->V[(chipper->opcode & 0x00F0) >> 4])
+                chipper->PC += 4;
+            else
+                chipper->PC += 2;
+        break;
+
+        case 0xA000:
+            chipper->I = chipper->opcode & 0x0FFF;
+            chipper->PC += 2;
+        break;
+
+        case 0xB000:
+            chipper->PC = (chipper->opcode & 0x0FFF) + chipper->V[0];
+        break;
+
+        case 0xC000:
+            chipper->V[(chipper->opcode & 0x0F00) >> 8] = rand() & (chipper->opcode & 0x00FF);
+            chipper->PC += 2;
+        break;
+
+        case 0xD000:
+            /* Get our coordinates and height of the sprite from the opcode. */
+            x = chipper->V[(chipper->opcode & 0x0F00) >> 8];
+            y = chipper->V[(chipper->opcode & 0x00F0) >> 4];
+            h = chipper->opcode & 0x000F;
+            chipper->V[0xF] &= 0;
+
+            /* For each line of the sprite, get the byte starting at memory location I. */
+            for (int yline = 0; yline < h; yline++)
+            {
+                sprite_row = chipper->memory[chipper->I + yline];
+                /* Check each bit in the sprite line byte and draw it if it is 1. VF is set
+                   if the sprite bit is 1 and there is already a pixel drawn. If not it XORs
+                   the pixel onto the screen. */
+                for (int xline = 0; xline < 8; xline++)
+                    if (sprite_row & (0x80 >> xline))
+                        if ((x + xline + (y + yline) * GRAPHICS_W) < GRAPHICS_W * GRAPHICS_H)
+                        {
+                            if (chipper->graphics[x + xline + (y + yline) * GRAPHICS_W])
+                                chipper->V[0xF] = 1;
+                            chipper->graphics[x + xline + (y + yline) * GRAPHICS_W] ^= 0xFFFFFFFF;
+                        }
+            }
+            chipper->PC += 2;
+        break;
+
+        case 0xE000:
+            switch (chipper->opcode & 0x000F)
+            {
+            case 0x000E:
+                keystate = SDL_GetKeyboardState(NULL);
+                if (keystate[keymap[chipper->V[(chipper->opcode & 0x0F00) >> 8]]])
+                    chipper->PC += 4;
+                else
+                    chipper->PC += 2;
+            break;
+
+            case 0x0001:
+                keystate = SDL_GetKeyboardState(NULL);
+                if (!keystate[keymap[chipper->V[(chipper->opcode & 0x0F00) >> 8]]])
+                    chipper->PC += 4;
+                else
+                    chipper->PC += 2;
+            break;
+
+            default:
+                printf("Wrong opcode: %04X", chipper->opcode);
+            break;
+            }
+        break;
+
+        case 0xF000:
+            switch (chipper->opcode & 0x00FF)
+            {
+            case 0x0007:
+                chipper->V[(chipper->opcode & 0x0F00) >> 8] = chipper->DT;
+                chipper->PC += 2;
+            break;
+
+            case 0x000A:
+                /* We simulate a halt / infinite loop by not progressing the
+                   program counter until a key is pressed. This is so that it
+                   keeps running this opcode until a key is pressed, which is
+                   then stored in VX. */
+                keystate = SDL_GetKeyboardState(NULL);
+                for (int i = 0; i < 0x10; i++)
+                    if (keystate[keymap[i]])
+                    {
+                        chipper->V[(chipper->opcode & 0x0F00) >> 8] = i;
+                        chipper->PC += 2;
+                    }
+            break;
+
+            case 0x0015:
+                chipper->DT = chipper->V[(chipper->opcode & 0x0F00) >> 8];
+                chipper->PC += 2;
+            break;
+
+            case 0x0018:
+                chipper->ST = chipper->V[(chipper->opcode & 0x0F00) >> 8];
+                chipper->PC += 2;
+            break;
+
+            case 0x001E:
+                chipper->I += chipper->V[(chipper->opcode & 0x0F00) >> 8];
+                chipper->PC += 2;
+            break;
+
+            case 0x0029:
+                /* We multiply by 5 here since each font sprite is 5 bytes in length,
+                   so to get to the right font sprite we need to take the number of
+                   the sprite (1, 4, A, etc.) and multiply it by the font sprite width. */
+                chipper->I = chipper->V[(chipper->opcode & 0x0F00) >> 8] * 5;
+                chipper->PC += 2;
+            break;
+
+            case 0x0033:
+                chipper->memory[chipper->I] = chipper->V[(chipper->opcode & 0x0F00) >> 8] / 100;
+                chipper->memory[chipper->I + 1] = (chipper->V[(chipper->opcode & 0x0F00) >> 8] / 10) % 10;
+                chipper->memory[chipper->I + 2] = chipper->V[(chipper->opcode & 0x0F00) >> 8] % 10;
+                chipper->PC += 2;
+            break;
+
+            case 0x0055:
+                for (int i = 0; i <= ((chipper->opcode & 0x0F00) >> 8); i++)
+                    chipper->memory[chipper->I + i] = chipper->V[i];
+                chipper->PC += 2;
+            break;
+
+            case 0x0065:
+                for (int i = 0; i <= ((chipper->opcode & 0x0F00) >> 8); i++)
+                    chipper->V[i] = chipper->memory[chipper->I + i];
+                chipper->PC += 2;
+            break;
+
+            default:
+                printf("Wrong opcode: %04X", chipper->opcode);
+            break;
+            }
+        break;
 
         default:
             printf("ERROR UNKNOWN OPCODE\n");
