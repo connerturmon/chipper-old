@@ -39,7 +39,7 @@ typedef struct CHIP8
 /* Start our CHIP-8 system by loading our ROM and initializing everything. */
 void ChipperStart(const char *rom_file);
 void ChipperInitialize(CHIP8 *chipper, const char *rom_file);
-void ChipperDraw(CHIP8 *chipper, SDL_Renderer *renderer);
+void ChipperDraw(CHIP8 *chipper, SDL_Renderer *renderer, SDL_Texture *screen);
 void ChipperTimers(CHIP8 *chipper);
 void ChipperExecute(CHIP8 *chipper);
 

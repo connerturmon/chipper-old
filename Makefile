@@ -1,2 +1,2 @@
 test:
-	clang -lSDL2 src/Main.c src/Chipper.h src/Chipper.c
+	g++ -fpermissive -lSDL2 src/Main.c src/Chipper.h src/Chipper.c -o chipper

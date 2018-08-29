@@ -91,6 +91,17 @@ void ChipperStart(const char *rom_file)
         exit(3);
     }
 
+    /* Create our texture that uses RGBA format. */
+    SDL_Texture *screen = SDL_CreateTexture(
+        renderer,
+        SDL_PIXELFORMAT_RGBA32,
+        SDL_TEXTUREACCESS_STREAMING,
+        GRAPHICS_W,
+        GRAPHICS_H
+    );
+    if (screen == NULL)
+        exit(30);
+
     /* Create our event so we can check for exit. */
     SDL_Event ev;
     bool      running = TRUE;
@@ -103,7 +114,7 @@ void ChipperStart(const char *rom_file)
                 running = FALSE;
         
         ChipperExecute(&chipper);
-        ChipperDraw(&chipper, renderer);
+        ChipperDraw(&chipper, renderer, screen);
     }
 }
 
@@ -134,28 +145,14 @@ void ChipperInitialize(CHIP8 *chipper, const char *rom_file)
 }
 
 /* Draw our screen based on our chipper graphics array. */
-void ChipperDraw(CHIP8 *chipper, SDL_Renderer *renderer)
+void ChipperDraw(CHIP8 *chipper, SDL_Renderer *renderer, SDL_Texture *screen)
 {
-    /* Create our texture that uses RGBA format. */
-    SDL_Texture *screen = SDL_CreateTexture(
-        renderer,
-        SDL_PIXELFORMAT_RGBA32,
-        SDL_TEXTUREACCESS_STREAMING,
-        GRAPHICS_W,
-        GRAPHICS_H
-    );
-    if (screen == NULL)
-        exit(30);
-
     /* Update our texture with our graphics array. This is where the sprites
        are drawn to. */
     SDL_UpdateTexture(screen, NULL, chipper->graphics, (64 * sizeof(Uint32)));
     SDL_RenderCopy(renderer, screen, NULL, NULL);
 
     SDL_RenderPresent(renderer);
-
-    /* Don't know why we do this yet. */
-    // SDL_Delay(15);
 }
 
 /* Decrement our timers by a rate 60Hz. */

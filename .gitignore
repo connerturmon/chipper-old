@@ -1,4 +1,4 @@
 src/*.gch
-a.out
-
-original.c
+*.out
+chipper
+.vscode
