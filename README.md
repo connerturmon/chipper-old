@@ -18,12 +18,19 @@ able to improve on this emulator and many more in the future.
 To compile Chipper, make sure that you have [SDL2](https://www.libsdl.org/download-2.0.php)
 installed on your system, and then run 'make' in the main directory. If you are not on Linux,
 simply pop the files into an IDE of your choice (like Visual Studio) and change the
-"#include <SDL2/SDL.h>" to "#include <SDL.h>", and then build. Optionally, you compile through
+```
+"#include <SDL2/SDL.h>"
+```
+to
+```
+"#include <SDL.h>"
+```
+and then build. Optionally, you compile through
 command line on Windows, but you may still need to change the SDL include.
 
 ## Using Chipper
 
-Chipper uses the keys as the keyboard layout:
+Chipper uses these keys as the keyboard layout:
 
 ```
 1 2 3 4
