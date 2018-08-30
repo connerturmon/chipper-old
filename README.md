@@ -16,8 +16,14 @@ able to improve on this emulator and many more in the future.
 ## Compilation
 
 To compile Chipper, make sure that you have [SDL2](https://www.libsdl.org/download-2.0.php)
-installed on your system, and then run 'make' in the main directory. If you are not on Linux,
-simply pop the files into an IDE of your choice (like Visual Studio) and change the
+installed on your system.
+```
+git clone https://github.com/connerturmon/chipper.git
+cd chipper/
+make
+```
+
+If you are not on a Unix based system, you may need to change:
 ```
 "#include <SDL2/SDL.h>"
 ```
@@ -25,8 +31,7 @@ to
 ```
 "#include <SDL.h>"
 ```
-and then build. Optionally, you compile through
-command line on Windows, but you may still need to change the SDL include.
+and then build. This depends on your system/IDE.
 
 ## Using Chipper
 
@@ -45,15 +50,15 @@ Z X C V
 Chipper is started by passing a ROM file as a command line argument to
 Chipper.
 
-*Linux:*
+**Linux:**
 
 ```
 ./chipper ~/ROMS/PONG
 ```
 
-*Windows:*
+**Windows:**
 
-(Open command line in directory with executable)
+*(Open command line in directory with executable)*
 
 ```
 chipper C:\ROMS\PONG
