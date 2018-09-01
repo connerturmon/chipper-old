@@ -1,6 +1,6 @@
 #### Emulator Projects
 * Chipper
-* [Emunino](https://github.com/connerturmon/emunino) *WIP*
+* [Gibi](https://github.com/connerturmon/gibi) *WIP*
 
 # Chipper - A Chip-8 Emulator in C
 
