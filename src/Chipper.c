@@ -149,7 +149,7 @@ void ChipperDraw(CHIP8 *chipper, SDL_Renderer *renderer, SDL_Texture *screen)
 {
     /* Update our texture with our graphics array. This is where the sprites
        are drawn to. */
-    SDL_UpdateTexture(screen, NULL, chipper->graphics, (64 * sizeof(Uint32)));
+    SDL_UpdateTexture(screen, NULL, chipper->graphics, (GRAPHICS_W * sizeof(Uint32)));
     SDL_RenderCopy(renderer, screen, NULL, NULL);
 
     SDL_RenderPresent(renderer);
@@ -196,7 +196,9 @@ void ChipperExecute(CHIP8 *chipper)
             break;
 
             case 0x000E:
-                chipper->PC = chipper->stack[(--chipper->SP) & 0xF] + 2;
+                chipper->SP--;
+                chipper->PC = chipper->stack[chipper->SP];
+                chipper->PC += 2;
             break;
             }
         break;
@@ -206,7 +208,8 @@ void ChipperExecute(CHIP8 *chipper)
         break;
 
         case 0x2000:
-            chipper->stack[(chipper->SP++) & 0xF] = chipper->PC;
+            chipper->stack[chipper->SP] = chipper->PC;
+            chipper->SP++;
             chipper->PC = chipper->opcode & 0x0FFF;
         break;
 
@@ -344,20 +347,19 @@ void ChipperExecute(CHIP8 *chipper)
             chipper->V[0xF] &= 0;
 
             /* For each line of the sprite, get the byte starting at memory location I. */
-            for (int yline = 0; yline < h; yline++)
+            for (int yline = 0; yline < h && (yline + y) < GRAPHICS_H; yline++)
             {
                 sprite_row = chipper->memory[chipper->I + yline];
                 /* Check each bit in the sprite line byte and draw it if it is 1. VF is set
                    if the sprite bit is 1 and there is already a pixel drawn. If not it XORs
                    the pixel onto the screen. */
-                for (int xline = 0; xline < 8; xline++)
+                for (int xline = 0; xline < 8 && (xline + x) < GRAPHICS_W; xline++)
                     if (sprite_row & (0x80 >> xline))
-                        if ((x + xline + (y + yline) * GRAPHICS_W) < GRAPHICS_W * GRAPHICS_H)
-                        {
-                            if (chipper->graphics[x + xline + (y + yline) * GRAPHICS_W])
-                                chipper->V[0xF] = 1;
-                            chipper->graphics[x + xline + (y + yline) * GRAPHICS_W] ^= 0xFFFFFFFF;
-                        }
+                    {
+                        if (chipper->graphics[x + xline + (y + yline) * GRAPHICS_W])
+                            chipper->V[0xF] = 1;
+                        chipper->graphics[x + xline + (y + yline) * GRAPHICS_W] ^= 0xFFFFFFFF;
+                    }
             }
             chipper->PC += 2;
         break;
