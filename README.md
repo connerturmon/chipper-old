@@ -27,21 +27,14 @@ cd chipper/
 make
 ```
 
-If you are not on a Unix based system, you may need to change:
-```
-"#include <SDL2/SDL.h>"
-```
-to
-```
-"#include <SDL.h>"
-```
-and then build. This depends on your system/IDE.
+If you are not on a Unix based system, you may need to change `"#include <SDL2/SDL.h>"`
+to `"#include <SDL.h>"` and then build. This depends on your system/IDE.
 
 ## Using Chipper
 
 Chipper uses these keys as the keyboard layout:
 
-```
+`
 1 2 3 4
 
 Q W E R
@@ -49,10 +42,9 @@ Q W E R
 A S D F
 
 Z X C V
-```
+`
 
-Chipper is started by passing a ROM file as a command line argument to
-Chipper.
+Chipper is started by passing a ROM file as a command line argument to Chipper.
 
 **Linux:**
 
