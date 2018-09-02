@@ -9,6 +9,16 @@
 Chipper is a Chip-8 Emulator written in C with the SDL2 framework for
 audio, video, and input.
 
+#### Overview:
+* [About](https://github.com/connerturmon/chipper#about)
+* [Building](https://github.com/connerturmon/chipper#building)
+    * [Linux](https://github.com/connerturmon/chipper#linux)
+    * [Windows & OSX](https://github.com/connerturmon/chipper#windows--osx)
+* [Compiling & Linking](https://github.com/connerturmon/chipper#compiling--linking)
+    * [Linux](https://github.com/connerturmon/chipper#linux-1)
+    * Windows & OSX <sub>*coming soon*</sub>
+* [Using Chipper](https://github.com/connerturmon/chipper#using-chipper)
+
 ## About
 
 This emulator is the first of hopefully many emulator
