@@ -1,0 +1,11 @@
+dist: 'xenial'
+
+language: 'c'
+
+addons:
+  apt:
+    packages:
+    - libsdl2-2.0
+
+script:
+  - 'make test'
