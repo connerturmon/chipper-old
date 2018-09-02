@@ -94,7 +94,7 @@ void ChipperStart(const char *rom_file)
     /* Create our texture that uses RGBA format. */
     SDL_Texture *screen = SDL_CreateTexture(
         renderer,
-        SDL_PIXELFORMAT_RGBA32,
+        SDL_PIXELFORMAT_RGBA8888,
         SDL_TEXTUREACCESS_STREAMING,
         GRAPHICS_W,
         GRAPHICS_H

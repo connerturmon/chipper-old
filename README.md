@@ -2,6 +2,10 @@
 * Chipper
 * [Gibi](https://github.com/connerturmon/gibi) *WIP*
 
+[![Build Status](https://travis-ci.org/connerturmon/chipper.svg?branch=master)](https://travis-ci.org/connerturmon/chipper)
+[![GitHub release](https://img.shields.io/github/release/qubyte/rubidium.svg)](https://github.com/connerturmon/chipper/releases/tag/v1.0)
+
+
 # Chipper - A Chip-8 Emulator in C
 
 Chipper is a Chip-8 Emulator written in C with the SDL2 framework for
