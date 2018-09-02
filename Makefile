@@ -1,2 +1,2 @@
 test:
-	gcc -std=c99 src/Main.c src/Chipper.h src/Chipper.c -lSDL2 -o chipper
+	gcc -std=c99 source/Main.c source/Chipper.h source/Chipper.c -lSDL2 -o chipper
