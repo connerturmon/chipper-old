@@ -7,26 +7,55 @@
 # Chipper - A Chip-8 Emulator in C
 
 Chipper is a Chip-8 Emulator written in C with the SDL2 framework for
-audio, video, and input. This emulator is the first of hopefully many emulator
+audio, video, and input.
+
+## About
+
+This emulator is the first of hopefully many emulator
 projects, mostly aimed at providing an educational learning experience in
 low level hardware emulation.
 
-This emulator is not expected to be fully fleshed out, as I fairly new to software
+This emulator is not expected to be fully fleshed out, as I am fairly new to software
 development and computer engineering. I do hope, however, that with time I am
 able to improve on this emulator and many more in the future.
 
-## Compilation
+## Building
 
-To compile Chipper, make sure that you have [SDL2](https://www.libsdl.org/download-2.0.php)
-installed on your system.
+Here are the steps for building the most current version of Chipper on your system:
+
+### Dependencies
+
+You must have [SDL2](https://www.libsdl.org/download-2.0.php) installed on 
+your system. This varies from system to system.
+
+### Linux:
+#### Ubuntu (16.04 LTS +)
 ```
+sudo apt-get install libsdl2-2.0-0 libsdl2-dev
+```
+#### Arch / Manjaro
+```
+sudo pacman -S sdl2
+```
+#### Fedora
+```
+sudo yum install SDL2
+```
+
+### Windows & OSX:
+Download and install the Development Libraries located at the bottom of the [SDL2 Download Page](https://www.libsdl.org/download-2.0.php).
+
+Actually getting them to compile SDL2 code is beyond the scope of this documentation, but a simple google search will return instructions on how to compile SDL2 code for your given OS + IDE.
+
+### Compiling & Linking
+<sup>Chipper does not currently have direct compilation support for Windows / OSX.</sup>
+#### Linux:
+```Bash
 git clone https://github.com/connerturmon/chipper.git
 cd chipper/
 make
 ```
-
-If you are not on a Unix based system, you may need to change `"#include <SDL2/SDL.h>"`
-to `"#include <SDL.h>"` and then build. This depends on your system/IDE.
+A binary file `chipper` will be located inside the nest/ directory.
 
 ## Using Chipper
 
