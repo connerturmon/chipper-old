@@ -1,11 +1,11 @@
-dist: 'xenial'
-
-language: 'c'
-
+language: c
+compiler: gcc
+install: true
 addons:
   apt:
     packages:
-    - libsdl2-dev
-
+      - libsdl2-2.0-0
+      - libsdl2-dev
+env: PATH=".:$PATH"
 script:
-  - 'make test'
+  - make test
