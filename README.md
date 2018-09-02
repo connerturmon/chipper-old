@@ -19,6 +19,9 @@ audio, video, and input.
     * Windows & OSX <sub>*coming soon*</sub>
 * [Using Chipper](https://github.com/connerturmon/chipper#using-chipper)
 
+#### Want to Program You Own CHIP-8 Emulator?
+Check out: [Our Wiki For Learning How To Make a CHIP-8 Emulator](https://github.com/connerturmon/chipper/wiki)
+
 ## About
 
 This emulator is the first of hopefully many emulator
