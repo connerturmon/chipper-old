@@ -5,7 +5,7 @@ language: 'c'
 addons:
   apt:
     packages:
-    - libsdl2-2.0
+    - libsdl2-dev
 
 script:
   - 'make test'
