@@ -125,10 +125,7 @@ void ChipperInitialize(CHIP8 *chipper, const char *rom_file)
        the CHIP-8 since the interpreter resides in the first 0x1FF
        bytes. */
     FILE *rom = fopen(rom_file, "r");
-    fseek(rom, 0, SEEK_END);
-    Uint16 rom_size = ftell(rom);
-    fseek(rom, 0, SEEK_SET);
-    fread(chipper->memory + 0x200, 1, rom_size, rom);
+    fread(chipper->memory + 0x200, 1, sizeof(chipper->memory), rom);
 
     /* Load our fontset into memory. */
     for (int i = 0; i < 80; i++)
