@@ -1,6 +1,4 @@
-#### Emulator Projects
-* Chipper
-* [Gibi](https://github.com/connerturmon/gibi) *WIP*
+![CHIP-8](https://github.com/connerturmon/chipper/blob/master/resource/chip8.png)
 
 [![Build Status](https://travis-ci.org/connerturmon/chipper.svg?branch=master)](https://travis-ci.org/connerturmon/chipper)
 [![GitHub release](https://img.shields.io/github/release/connerturmon/chipper.svg)](https://github.com/connerturmon/chipper/releases/tag/v1.0)
