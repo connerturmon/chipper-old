@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/connerturmon/chipper.svg?branch=master)](https://travis-ci.org/connerturmon/chipper)
 [![GitHub release](https://img.shields.io/github/release/connerturmon/chipper.svg)](https://github.com/connerturmon/chipper/releases/tag/v1.0)
-
+[![Gitter chat](https://badges.gitter.im/connerturmon-chipper/Lobby.png)](https://gitter.im/connerturmon-chipper/Lobby)
 
 # Chipper - A Chip-8 Emulator in C
 
