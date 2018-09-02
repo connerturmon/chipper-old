@@ -34,15 +34,13 @@ to `"#include <SDL.h>"` and then build. This depends on your system/IDE.
 
 Chipper uses these keys as the keyboard layout:
 
-`
-1 2 3 4
+`1 2 3 4`
 
-Q W E R
+`Q W E R`
 
-A S D F
+`A S D F`
 
-Z X C V
-`
+`Z X C V`
 
 Chipper is started by passing a ROM file as a command line argument to Chipper.
 
